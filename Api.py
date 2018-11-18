@@ -17,11 +17,15 @@ def index():
 
 @app.route('/user-stories', methods=['POST'])
 def api_user_stories():
-    if not request.files or request.files['stories']:
+    if not request.files or not request.files['stories']:
         return Response(json.dumps({'error': 'Upload a user story.'}), status=409, mimetype='application/json')
 
     stream = request.files['stories'].stream
-    messages = stream.read().decode('UTF-8').split('\n')
+    if request.files['stories'].content_type == 'text/csv':
+        messages = stream.read().decode("UTF8").split('\r\n')
+    else:
+        messages = stream.read().decode('UTF-8').split('\n')
+
     weights = [1, 1, 1, 0.7, 0.5, 0.66]
 
     conceptual_model = ModelGenerationApi('system-name', 1, 1, weights, messages)
